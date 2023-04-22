@@ -42,55 +42,29 @@ render model focusedImage attributes =
             in
             ( toFloat model.gap + toFloat column * toFloat (model.gap + model.realSize), toFloat model.gap + toFloat row * toFloat (model.gap + model.realSize) )
 
-        renderClipPath : Int -> Image -> Svg Never
-        renderClipPath i image =
-            let
-                positionShift =
-                    positionShiftFor i
-            in
-            node "clipPath"
-                [ id <| "clip" ++ String.fromInt i, attribute "clipPathUnits" "userSpaceOnUse" ]
-                [ rect
-                    [ width <| String.fromInt model.realSize
-                    , height <| String.fromInt model.realSize
-                    , x <| String.fromFloat <| Tuple.first positionShift
-                    , y <| String.fromFloat <| Tuple.second positionShift
-                    ]
-                    []
-                ]
-
         renderImage : Int -> Image -> Svg Never
         renderImage i image =
             let
-                imageToUm px =
-                    toFloat px * image.scaling.um / toFloat image.scaling.px
-
-                outputToPx um =
-                    round <| um * toFloat model.realSize / model.croppedSize
-
-                scaledSize =
-                    Tuple.mapBoth (imageToUm >> outputToPx) (imageToUm >> outputToPx) image.size
-
-                scaledCenter =
-                    Tuple.mapBoth (imageToUm >> outputToPx) (imageToUm >> outputToPx) image.center
-
-                scaledCropShift =
-                    ( toFloat model.realSize / 2 - toFloat (Tuple.first scaledCenter)
-                    , toFloat model.realSize / 2 - toFloat (Tuple.second scaledCenter)
-                    )
-
                 positionShift =
                     positionShiftFor i
+
+                visibleSize =
+                    model.croppedSize * toFloat image.scaling.px / image.scaling.um
             in
-            node "image"
-                [ attribute "href" image.url
-                , attribute "clip-path" <| "url(#clip" ++ String.fromInt i ++ ")"
-                , x <| (String.fromFloat <| Tuple.first positionShift + Tuple.first scaledCropShift) ++ "px"
-                , y <| (String.fromFloat <| Tuple.second positionShift + Tuple.second scaledCropShift) ++ "px"
-                , width <| (String.fromInt <| Tuple.first scaledSize) ++ "px"
-                , height <| (String.fromInt <| Tuple.second scaledSize) ++ "px"
+            node "svg"
+                [ x <| String.fromFloat <| Tuple.first positionShift
+                , y <| String.fromFloat <| Tuple.second positionShift
+                , width <| String.fromInt model.realSize
+                , height <| String.fromInt model.realSize
+                , viewBox <|
+                    String.join " "
+                        [ String.fromFloat <| toFloat (Tuple.first image.center) - visibleSize / 2
+                        , String.fromFloat <| toFloat (Tuple.second image.center) - visibleSize / 2
+                        , String.fromFloat visibleSize
+                        , String.fromFloat visibleSize
+                        ]
                 ]
-                []
+                [ node "image" [ attribute "href" image.url ] [] ]
 
         viewSize : ( Int, Int )
         viewSize =
@@ -147,9 +121,7 @@ render model focusedImage attributes =
                )
         )
     <|
-        [ defs [] <|
-            List.indexedMap renderClipPath model.images
-        ]
+        []
             ++ (model.background |> Maybe.map (\{ color, opacity } -> [ rect [ x "0", y "0", width w, height h, fill color, fillOpacity <| String.fromFloat opacity ] [] ]) |> Maybe.withDefault [])
             ++ List.indexedMap renderImage model.images
             ++ (focusedImage
