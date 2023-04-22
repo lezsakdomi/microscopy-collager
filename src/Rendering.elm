@@ -82,15 +82,25 @@ render model focusedImage attributes =
                 positionShift =
                     positionShiftFor i
             in
-            node "image"
-                [ attribute "href" image.url
-                , attribute "clip-path" <| "url(#clip" ++ String.fromInt i ++ ")"
-                , x <| (String.fromFloat <| Tuple.first positionShift + Tuple.first scaledCropShift) ++ "px"
-                , y <| (String.fromFloat <| Tuple.second positionShift + Tuple.second scaledCropShift) ++ "px"
-                , width <| (String.fromInt <| Tuple.first scaledSize) ++ "px"
-                , height <| (String.fromInt <| Tuple.second scaledSize) ++ "px"
+            g
+                [ attribute "clip-path" <| "url(#clip" ++ String.fromInt i ++ ")"
                 ]
-                []
+                [ g
+                    [ transform <|
+                        "translate("
+                            ++ (String.fromFloat <| Tuple.first positionShift + Tuple.first scaledCropShift)
+                            ++ " "
+                            ++ (String.fromFloat <| Tuple.second positionShift + Tuple.second scaledCropShift)
+                            ++ ")"
+                    ]
+                    [ node "image"
+                        [ attribute "href" image.url
+                        , width <| (String.fromInt <| Tuple.first scaledSize) ++ "px"
+                        , height <| (String.fromInt <| Tuple.second scaledSize) ++ "px"
+                        ]
+                        []
+                    ]
+                ]
 
         viewSize : ( Int, Int )
         viewSize =
