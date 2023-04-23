@@ -37,7 +37,6 @@ jobs:
         with:
           name: "build"
           path: |
-            Main.html
             Main.js
       - name: Uglify
         run: |
@@ -47,5 +46,4 @@ jobs:
         with:
           name: "build"
           path: |
-            Main.html
             Main.min.js
