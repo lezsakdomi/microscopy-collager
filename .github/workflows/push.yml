@@ -9,7 +9,7 @@ permissions:
 jobs:
   build:
     uses: ./.github/workflows/build.yml
-  deploy:
+  pages:
     needs: build
     if: ${{ success() && github.ref == 'refs/heads/master' }}
     uses: ./.github/workflows/pages.yml
