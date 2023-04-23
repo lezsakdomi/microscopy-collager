@@ -55,7 +55,7 @@ jobs:
     uses: ./.github/workflows/pages.yml
   draft-release:
     needs: minify
-    if: jobs.build.conclusion == 'success'
+    if: ${{ jobs.build.result == 'success' }}
     runs-on: ubuntu-latest
     steps:
       - uses: release-drafter/release-drafter@v5
