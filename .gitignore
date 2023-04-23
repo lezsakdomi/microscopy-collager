@@ -1,2 +1,4 @@
 # Project exclude paths
 /elm-stuff/
+Main.js
+Main.min.js

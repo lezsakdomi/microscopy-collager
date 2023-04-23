@@ -1,0 +1,60 @@
+<!DOCTYPE HTML>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Main</title>
+    <style>body {
+        padding: 0;
+        margin: 0;
+    }</style>
+    <script>
+        async function loadFirstScript(sources) {
+            if (sources.length > 0) {
+                const source = sources[0];
+                const otherSources = sources.slice(1);
+
+                return new Promise((resolve, reject) => {
+                    const script = document.createElement('script');
+                    script.src = source;
+                    script.addEventListener('error', (e) => {
+                        console.warn("Loading", source, "failed:", e, "\nTrying other sources.");
+                        loadFirstScript(otherSources).then(resolve, reject);
+                    });
+                    script.addEventListener('load', (e) => {
+                        console.debug("Script", source, "loaded:", e);
+                        resolve();
+                    });
+                    document.head.appendChild(script);
+                });
+            } else {
+                throw new Error("Couldn't load script");
+            }
+        }
+
+        const DOMContentLoaded = new Promise(resolve => document.addEventListener('DOMContentLoaded', resolve));
+
+        async function main() {
+            try {
+                await loadFirstScript(["Main.min.js", "Main.js"]);
+                await DOMContentLoaded;
+                window.app = Elm.Main.init({node: document.getElementById("elm")});
+            } catch (e) {
+                await DOMContentLoaded;
+                // display initialization errors (e.g. bad flags, infinite recursion)
+                const header = document.createElement("h1");
+                header.style.fontFamily = "monospace";
+                header.innerText = "Initialization Error";
+                const pre = document.getElementById("elm");
+                document.body.insertBefore(header, pre);
+                pre.innerText = e;
+                throw e;
+            }
+        }
+
+        main();
+    </script>
+</head>
+<body>
+<pre id="elm"></pre>
+</body>
+</html>

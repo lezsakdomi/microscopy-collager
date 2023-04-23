@@ -1,0 +1,66 @@
+name: Build and deploy web app to Pages
+
+on: [push, pull_request]
+
+# Sets permissions of the GITHUB_TOKEN to allow deployment to GitHub Pages
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Install uglifyjs
+        run: sudo apt-get install -y uglifyjs
+      - name: Install elm, elm-format and cache the ELM_HOME directory
+        uses: mpizenberg/elm-tooling-action@v1.2
+        with:
+          cache-key: elm-home-${{ hashFiles('elm-tooling.json', 'elm.json') }}
+      - uses: actions/checkout@v3
+      - name: Build
+        run: |
+          elm make --optimize src/Main.elm --output Main.js
+          du -h Main.js
+      - uses: actions/upload-artifact@v3
+        with:
+          name: "build"
+          path: |
+            Main.js
+            Main.html
+  minify:
+    needs: build
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Install uglifyjs
+        run: sudo apt-get install -y uglifyjs
+      - uses: actions/download-artifact@v3
+        with:
+          name: "build"
+          path: |
+            Main.html
+            Main.js
+      - name: Uglify
+        run: |
+          uglifyjs Main.js --compress 'pure_funcs=[F2,F3,F4,F5,F6,F7,F8,F9,A2,A3,A4,A5,A6,A7,A8,A9],pure_getters,keep_fargs=false,unsafe_comps,unsafe' | uglifyjs --mangle --output Main.min.js
+          du -h Main.min.js
+      - uses: actions/upload-artifact@v3
+        with:
+          name: "build"
+          path: |
+            Main.html
+            Main.min.js
+  deploy:
+    needs: [build, minify]
+    if: success() && github.ref == 'refs/heads/master'
+    uses: ./.github/workflows/pages.yml
+  draft-release:
+    needs: minify
+    if: jobs.build.conclusion == 'success'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: release-drafter/release-drafter@v5
+        with:
+          template: |
+            ## Changes
+
+            $CHANGES
