@@ -1,6 +1,8 @@
 name: Build and deploy web app to Pages
 
-on: [push, pull_request]
+on:
+  - pull_request
+  - workflow_call # Called on push by push.yml
 
 # Sets permissions of the GITHUB_TOKEN to allow deployment to GitHub Pages
 permissions:
@@ -49,17 +51,3 @@ jobs:
           path: |
             Main.html
             Main.min.js
-  deploy:
-    needs: [build, minify]
-    if: success() && github.ref == 'refs/heads/master'
-    uses: ./.github/workflows/pages.yml
-  draft-release:
-    needs: minify
-    runs-on: ubuntu-latest
-    steps:
-      - uses: release-drafter/release-drafter@v5
-        with:
-          template: |
-            ## Changes
-
-            $CHANGES

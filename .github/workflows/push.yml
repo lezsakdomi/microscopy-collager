@@ -1,0 +1,30 @@
+on: [push]
+
+permissions:
+  contents: read
+  actions: read
+  pages: write
+  id-token: write
+
+jobs:
+  build:
+    uses: ./.github/workflows/build.yml
+  deploy:
+    needs: build
+    if: ${{ success() && github.ref == 'refs/heads/master' }}
+    uses: ./.github/workflows/pages.yml
+  draft-release:
+    needs: build
+    if: ${{ success() && github.ref == 'refs/heads/master' }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: dawidd6/action-download-artifact@v2
+        with:
+          workflow: "build.yml"
+          workflow_conclusion: success
+          name: "build"
+      - uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            Main.html
+            Main.min.js
