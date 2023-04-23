@@ -21,8 +21,18 @@ jobs:
       - uses: actions/download-artifact@v3
         with:
           name: "build"
+      - uses: release-drafter/release-drafter@v5
+        id: draftRelease
+        with:
+          template: |
+            ## Changes
+
+            $CHANGES
       - uses: softprops/action-gh-release@v1
         with:
+          draft: true
+          name: ${{steps.draftRelease.outputs.name}}
+          tag_name: ${{steps.draftRelease.outputs.tag_name}}
           files: |
             Main.html
             Main.min.js
