@@ -13,8 +13,6 @@ jobs:
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v3
-      - name: Install uglifyjs
-        run: sudo apt-get install -y uglifyjs
       - name: Install elm, elm-format and cache the ELM_HOME directory
         uses: mpizenberg/elm-tooling-action@v1.2
         with:
