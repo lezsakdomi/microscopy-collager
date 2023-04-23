@@ -29,7 +29,6 @@ jobs:
       - uses: dawidd6/action-download-artifact@v2
         with:
           workflow: "build.yml"
-          workflow_conclusion: success
           name: "build"
       - name: Setup Pages
         uses: actions/configure-pages@v3
