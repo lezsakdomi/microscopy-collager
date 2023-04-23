@@ -28,7 +28,7 @@ jobs:
             Main.js
             Main.html
   uglify:
-    needs: build
+    needs: elm-make
     runs-on: ubuntu-22.04
     steps:
       - name: Install uglifyjs
